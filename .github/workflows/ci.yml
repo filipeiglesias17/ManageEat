@@ -1,0 +1,35 @@
+# Gate no GitHub: o mesmo `npm run gate` do dia-a-dia (eslint + tsc + vitest),
+# corrido em cada push/PR para main. Os testes são de lógica pura (Node, sem
+# DOM nem Supabase) — não é preciso Docker aqui. O gate:rules (auditoria RLS)
+# continua a correr localmente porque precisa do Supabase + seed.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  gate:
+    name: Gate (eslint + tsc + vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # ≥22: o @supabase/realtime-js exige WebSocket nativo do Node
+          # (sem ele, o createClient rebenta ao importar src/lib/supabase.ts).
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run gate
+        env:
+          # O vitest importa src/lib/supabase.ts, que exige a anon key ao carregar
+          # o módulo. Os testes são de lógica pura e nunca falam com o Supabase —
+          # este valor fictício serve só para o import não rebentar fora da
+          # máquina do restaurante (onde o .env.local não existe).
+          VITE_SUPABASE_ANON_KEY: ci-dummy-anon-key

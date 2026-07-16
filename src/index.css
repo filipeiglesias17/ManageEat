@@ -1,0 +1,366 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Tema duplo: a app arranca em CLARO (default POS — máxima legibilidade numa
+   sala iluminada) e suporta também um modo ESCURO. Convenção shadcn: o claro
+   vive em :root e o escuro em .dark. O toggle (lib/theme.ts) põe/tira a classe
+   .dark no <html>, e o @custom-variant faz os `dark:` internos reagirem. */
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+
+  /* Raio base sóbrio/industrial. A escala --radius-* no @theme inline mantém os
+     cantos nítidos e consistentes (2–8px) em toda a app. */
+  --radius: 0.25rem;
+
+  /* ── Tema CLARO (default) ── look POS corporativo: canvas cinzento neutro
+     (os cards brancos destacam por contraste + border, sem sombras coloridas)
+     e UM só acento — azul. Verde/âmbar/vermelho ficam reservados a estados. */
+  --background: #f6f7f8;               /* canvas cinzento POS */
+  --foreground: #18181b;               /* zinc-900 — texto principal */
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --brand: #1759d2;                    /* azul "Eat" do logótipo — cor da marca */
+  --brand-dark: #124aae;               /* mesmo azul escurecido (hover/pressed) */
+  --primary: #1759d2;
+  --primary-foreground: #ffffff;       /* branco sobre o azul Eat — contraste AA (6.2:1) */
+  --secondary: #f4f4f5;                /* zinc-100 */
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;         /* zinc-600 — secundário legível no claro */
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;              /* red-600 — melhor contraste no claro */
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.14);        /* um pouco mais forte p/ inputs visíveis */
+  --ring: #1759d2;
+
+  /* Tokens de ESTADO (o destructive já existia). Tons 700 de propósito: usados
+     como texto sobre fundos suaves (bg-success/15 text-success) cumprem AA
+     sobre branco/cinzento claro. */
+  --success: #15803d;                  /* green-700 */
+  --success-foreground: #ffffff;
+  --warning: #b45309;                  /* amber-700 */
+  --warning-foreground: #ffffff;
+  --info: #0369a1;                     /* sky-700 */
+  --info-foreground: #ffffff;
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* ── Tema ESCURO (opcional) ── zinc-950/900/800, border-white/10 e o azul
+     "Eat" clareado (#6a99f0, mesma matiz do logótipo) — mesma lógica de sempre:
+     acento claro sobre fundo escuro para manter o contraste. */
+  --background: #09090b;               /* zinc-950 — fundo da app */
+  --foreground: #f4f4f5;               /* zinc-100 */
+  --card: #18181b;                     /* zinc-900 */
+  --card-foreground: #f4f4f5;
+  --popover: #18181b;
+  --popover-foreground: #f4f4f5;
+  --brand: #6a99f0;                    /* azul "Eat" clareado p/ o dark */
+  --brand-dark: #5588ea;               /* azul "Eat" (hover/pressed) */
+  --primary: #6a99f0;
+  --primary-foreground: #0b1120;       /* texto escuro sobre o azul claro */
+  --secondary: #27272a;                /* zinc-800 */
+  --secondary-foreground: #f4f4f5;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;         /* zinc-400 — labels/texto secundário */
+  --accent: #27272a;
+  --accent-foreground: #f4f4f5;
+  --destructive: #ef4444;              /* red-500 */
+  --destructive-foreground: #f4f4f5;
+  --border: rgba(255, 255, 255, 0.1);  /* = border-white/10 (omnipresente) */
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #6a99f0;
+
+  /* Estados no dark: tons 300/400 (texto legível sobre bg-{estado}/15) com
+     foreground escuro para os raros botões sólidos de estado. */
+  --success: #4ade80;                  /* green-400 */
+  --success-foreground: #052e16;
+  --warning: #fbbf24;                  /* amber-400 */
+  --warning-foreground: #451a03;
+  --info: #38bdf8;                     /* sky-400 */
+  --info-foreground: #082f49;
+}
+
+@theme {
+  /* Tipografia: Inter Variable EMPACOTADA (importada em main.tsx, ~45KB woff2).
+     O porquê: a app fica pixel-a-pixel igual em iPhone/Android/tablet/PC —
+     coerência de marca corporativa — e a fonte atualiza por OTA. O stack de
+     sistema fica atrás como fallback enquanto a fonte carrega. */
+  --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Curva de easing "assinatura" (strong ease-out). Usar a MESMA em toda a app é
+     o que dá coerência/caráter ao movimento. Evitamos ease-in (parece lento). */
+  --ease-out-strong:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Movimento FUNCIONAL apenas (comunica estado), todo na curva assinatura:
+     pulse-border = urgência de pedido atrasado; slide-up = bottom sheet;
+     fade-in/rise/pop-in = entradas de listas e modais. Sem brilhos decorativos. */
+  --animate-pulse-border: pulse-border 2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  --animate-slide-up: slide-up 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  --animate-fade-in: fade-in 0.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  /* rise: entra a subir 12px + fade (listas/grelhas). pop-in: scale 0.96→1 +
+     fade (modais). Ambos na curva assinatura, só transform+opacity (GPU). */
+  --animate-rise:   rise 0.42s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-pop-in: pop-in 0.22s cubic-bezier(0.23, 1, 0.32, 1) both;
+
+  @keyframes pulse-border {
+    0%, 100% {
+      border-color: rgba(239, 68, 68, 0.2);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+    50% {
+      border-color: rgba(239, 68, 68, 0.8);
+      box-shadow: 0 0 12px 2px rgba(239, 68, 68, 0.35);
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* SAÍDAS — espelhos das entradas, mais curtas de propósito (sair deve ser
+     mais rápido do que entrar): pop-out/fade-out para o Modal e o overlay;
+     sink para itens de lista e toasts; slide-down para bottom sheets (gaveta
+     do carrinho). Todas na curva assinatura e só transform+opacity (GPU). */
+  --animate-pop-out: pop-out 0.18s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-fade-out: fade-out 0.15s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-sink: sink 0.18s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-slide-down: slide-down 0.25s cubic-bezier(0.23, 1, 0.32, 1) both;
+
+  @keyframes pop-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sink {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  @keyframes slide-down {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+}
+
+/* @theme inline: expõe os tokens semânticos (definidos em :root/.dark) como
+   utilities do Tailwind (bg-background, text-foreground, bg-primary, bg-brand,
+   ...). Tem de ser "inline" — senão o Tailwind congela os valores no build e o
+   toggle de tema (.dark) deixaria de poder trocar as cores. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Marca reativa ao tema: bg-brand/text-brand/border-brand usam --brand, que
+     é azul claro no dark e azul escurecido no light (contraste). */
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+
+  /* Tokens de estado como utilities (bg-success/15, text-warning, border-info,
+     ...) — reativos ao tema SEM precisar de dark: em cada uso. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* Cantos industriais e consistentes (2–8px). 2xl/3xl ficam "clampados" ao
+     teto: classes rounded-2xl/3xl antigas continuam a funcionar, mas nítidas. */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 8px;
+}
+
+/* Base: fonte do sistema + suavização (o "render Apple") e cores de fundo/texto
+   por tema no <body> como fallback antes dos componentes pintarem. */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Rede de segurança contra o zoom no iOS, a par do user-scalable=no no
+       viewport (index.html): trava o auto-ajuste de tamanho de texto e o gesto
+       de duplo-toque-para-zoom. Só afeta gestos touch — o zoom do browser no
+       desktop (admin no Mac) não é tocado. */
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    touch-action: manipulation;
+  }
+}
+
+/* Utilitários personalizados usando a sintaxe recomendada do Tailwind CSS v4 */
+@utility scrollbar-none {
+  scrollbar-width: none;            /* Firefox */
+  -ms-overflow-style: none;         /* Edge legado */
+  &::-webkit-scrollbar {
+    display: none;                  /* Chrome/Safari */
+  }
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(63, 63, 70, 0.5); /* zinc-700/50 */
+    border-radius: 9999px;
+    transition: background-color 0.2s;
+    &:hover {
+      background-color: rgba(82, 82, 91, 0.8); /* zinc-600/80 */
+    }
+  }
+}
+
+/* Safe-area: respeitar o notch / Dynamic Island no topo e o home indicator no
+   fundo. Só fazem efeito com viewport-fit=cover (já definido no index.html) e em
+   contentores que toquem as bordas do ecrã (login, BootScreen, navbar sticky). */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Lados esquerdo/direito: em landscape do iPhone o notch/Dynamic Island fica
+   de lado. Barras e gavetas que toquem a borda usam isto para não ficarem por
+   baixo do recorte. Em portrait o inset é 0, por isso não altera nada. */
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Troca de tema sem "wipe" de cor: enquanto esta classe está no <html> (só
+   durante o toggle, ver applyTheme em src/lib/theme.ts), suprimimos transições
+   para a mudança claro/escuro ser instantânea. */
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
+
+/* Acessibilidade: quem ativou "reduzir movimento" no sistema operativo deixa de
+   receber deslocações/scale — só mudanças quase instantâneas. As transições de
+   opacidade/cor mantêm-se subtis. Evita enjoo sem tirar funcionalidade. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ocultar barra de scroll principal em ecrãs móveis/tablets (experiência App Nativa) */
+@media (max-width: 1024px) {
+  html, body {
+    scrollbar-width: none;            /* Firefox */
+    -ms-overflow-style: none;         /* IE/Edge */
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;                    /* Chrome/Safari/Webkit */
+  }
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cores da marca (azul corporativo do redesign POS). O tema NoActionBar e a
+         StatusBar sao controlados em runtime (main.tsx), por isso estes valores sao
+         sobretudo cosmeticos, mas o styles.xml referencia-os: sem este ficheiro
+         o build Android falha no AAPT2. -->
+    <color name="colorPrimary">#1759d2</color>
+    <color name="colorPrimaryDark">#124aae</color>
+    <color name="colorAccent">#1759d2</color>
+</resources>
