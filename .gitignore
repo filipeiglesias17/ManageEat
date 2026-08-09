@@ -1,0 +1,30 @@
+node_modules/
+dist/
+build/
+qa-artifacts/
+backups/
+.env
+.env.*
+!.env.example
+# Chaves de encriptação OTA (capgo). A PRIVADA assina os updates — NUNCA commitar.
+# A pública vive em capacitor.config.ts; o ficheiro .pub é redundante.
+.capgo_key_v2
+.capgo_key_v2.pub
+# Zips temporários do ota:publish (capgo escreve-os na raiz; limpos no fim).
+com.manageeat.app_*.zip*
+# Certificados TLS locais (HTTPS na LAN). Gerados com mkcert; nunca commitar.
+certs/
+# Estado e atalhos gerados pelo launcher (scripts/launcher/).
+.launcher-state.json
+launcher-apps/
+*.log
+*.tsbuildinfo
+.DS_Store
+outdated/NOTES.pdf
+appDocs/*.pdf
+appDocs/funcoes.html
+# Ferramentas locais de QA (capturas para documentação interna; não publicadas).
+CAPTURAS-Relatorio.command
+scripts/qa-preclean-stale.mjs
+supabase/.branches/
+supabase/.temp/

@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  // baseUrl/paths repetidos aqui (além do tsconfig.app.json) porque ferramentas
+  // como a CLI do shadcn/ui leem o tsconfig.json raiz para resolver o alias "@".
+  // O build (tsc -b) usa as referências; este bloco é só para tooling.
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

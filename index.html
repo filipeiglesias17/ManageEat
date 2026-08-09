@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover: deixa o conteúdo usar a área toda do ecrã e expõe
+         os env(safe-area-inset-*) para respeitarmos o notch / home indicator no iPhone.
+         maximum-scale=1 + user-scalable=no: a app NUNCA dá zoom (pinch, duplo-toque
+         e auto-zoom ao focar inputs). No WKWebView do Capacitor isto é respeitado
+         (ao contrário do Safari móvel autónomo, que ignora por acessibilidade). É
+         ortogonal ao viewport-fit, por isso o notch/safe-area continua igual. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- Favicon segue o modo do SO (prefers-color-scheme): o browser escolhe o
+         <link> cujo media combina. O último sem media é o fallback para browsers
+         que ignoram media em rel="icon" — fica o claro (default da app). -->
+    <link rel="icon" type="image/png" media="(prefers-color-scheme: dark)" href="/manage-eat-logo-dark.png" />
+    <link rel="icon" type="image/png" media="(prefers-color-scheme: light)" href="/manage-eat-logo-light.png" />
+    <link rel="icon" type="image/png" href="/manage-eat-logo-light.png" />
+    <!-- "Adicionar ao ecrã principal" pelo Safari: não suporta media, fica um só. -->
+    <link rel="apple-touch-icon" href="/manage-eat-logo-light.png" />
+    <!-- Tinge a barra do browser/PWA conforme o modo do SO. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f7f8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090B" />
+    <title>Manage Eat</title>
+    <!-- Aplica o tema guardado ANTES do primeiro paint para evitar o flash de
+         tema errado. O <html> arranca em CLARO (default POS); só pomos a classe
+         se o utilizador tiver escolhido o tema escuro. Ver src/lib/theme.ts. -->
+    <script>
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) { /* localStorage indisponível: fica no claro por defeito */ }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

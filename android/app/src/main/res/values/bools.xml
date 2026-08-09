@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Telemóvel: app travada em portrait (o layout POS é vertical e o
+         landscape acidental no bolso/tabuleiro parte a experiência).
+         Em tablet (sw600dp) o override em values-sw600dp/bools.xml liberta a
+         rotação — no balcão o tablet trabalha ao alto ou deitado. -->
+    <bool name="portrait_only">true</bool>
+</resources>

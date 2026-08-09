@@ -1,0 +1,93 @@
+name: Integração
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  supabase-smoke:
+    name: Supabase, RLS, Playwright e axe
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Iniciar Supabase efémero
+        run: npx supabase start
+
+      - name: Exportar configuração local
+        shell: bash
+        run: |
+          eval "$(npx supabase status -o env)"
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "VITE_SUPABASE_URL=$API_URL"
+            echo "VITE_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+
+      - name: Aplicar dados de demonstração
+        run: npm run seed
+
+      - name: Auditar políticas RLS
+        run: npm run gate:rules
+
+      - name: Iniciar Vite
+        run: |
+          npm run dev > /tmp/manageeat-vite.log 2>&1 &
+          echo $! > /tmp/manageeat-vite.pid
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:5173/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/manageeat-vite.log
+          exit 1
+
+      - name: Smoke completo e acessibilidade
+        run: npm run qa:smoke
+
+      - name: Confirmar limpeza dos dados QA
+        shell: bash
+        run: |
+          count=$(docker exec supabase_db_manage-eat psql -U postgres -d postgres -Atc \
+            "select count(*) from public.sessions where id like 'qa-e2e-%' or id like 'headed-qa-%';")
+          test "$count" = "0"
+
+      - name: Reunir diagnóstico da falha
+        if: failure()
+        run: |
+          mkdir -p qa-artifacts/integration
+          cp /tmp/manageeat-vite.log qa-artifacts/integration/vite.log 2>/dev/null || true
+
+      - name: Guardar artefactos apenas em falha
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: integration-failure
+          if-no-files-found: ignore
+          path: |
+            qa-artifacts/
+            supabase/audit-results.*
+
+      - name: Parar serviços
+        if: always()
+        run: |
+          if [ -f /tmp/manageeat-vite.pid ]; then kill "$(cat /tmp/manageeat-vite.pid)" || true; fi
+          npx supabase stop --no-backup || true
