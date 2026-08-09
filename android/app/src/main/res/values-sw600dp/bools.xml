@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablets (largura mínima 600dp): rotação livre — ver values/bools.xml. -->
+    <bool name="portrait_only">false</bool>
+</resources>
